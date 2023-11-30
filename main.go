@@ -21,6 +21,7 @@ func main() {
 	router.HandleFunc("/login", handlers.LoginUser(db)).Methods("POST")
 
 	router.HandleFunc("/users", handlers.GetUsers(db)).Methods("GET")
+	router.HandleFunc("/users", handlers.UpdateUser(db)).Methods("PUT")
 
 	router.HandleFunc("/signup", handlers.CreateUser(db)).Methods("POST")
 

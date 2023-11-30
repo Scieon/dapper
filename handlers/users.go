@@ -4,6 +4,7 @@ import (
 	"dapper/models"
 	"dapper/util"
 	"encoding/json"
+	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 	"net/http"
@@ -17,9 +18,9 @@ func GetUsers(db *gorm.DB) http.HandlerFunc {
 		// Parse the JWT from the header
 		tokenString := r.Header.Get("X-Authentication-Token")
 
-		isValid := validateJWT(tokenString)
+		email := validateJWT(tokenString)
 
-		if !isValid {
+		if email == "" {
 			util.SendErrorResponse(w, r, http.StatusUnauthorized, "Invalid authentication token", "")
 			return
 		}
@@ -57,7 +58,7 @@ func CreateUser(db *gorm.DB) http.HandlerFunc {
 			return
 		}
 
-		token, err := createJWT(user.Email)
+		jwtToken, err := createJWT(user.Email)
 		if err != nil {
 			util.SendErrorResponse(w, r, http.StatusInternalServerError, "Could not create JWT", err.Error())
 			return
@@ -65,7 +66,7 @@ func CreateUser(db *gorm.DB) http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(token)
+		json.NewEncoder(w).Encode(jwtToken)
 	}
 }
 
@@ -89,39 +90,81 @@ func LoginUser(db *gorm.DB) http.HandlerFunc {
 		}
 
 		// Ignore err - for cleaner code
-		jwt, _ := createJWT(login.Email)
+		jwtToken, _ := createJWT(login.Email)
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(jwt)
+		json.NewEncoder(w).Encode(jwtToken)
 	}
 }
 
-func validateJWT(tokenString string) bool {
+func UpdateUser(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Parse the JWT from the header
+		tokenString := r.Header.Get("X-Authentication-Token")
+
+		// Get email from token
+		email := validateJWT(tokenString)
+
+		if email == "" {
+			util.SendErrorResponse(w, r, http.StatusUnauthorized, "Invalid authentication token", "")
+			return
+		}
+
+		var user models.User
+
+		err := json.NewDecoder(r.Body).Decode(&user)
+		if err != nil {
+			util.SendErrorResponse(w, r, http.StatusBadRequest, "Invalid request", err.Error())
+			return
+		}
+
+		fmt.Printf("===> %s", email)
+
+		// build query string slowly - fn, ln, fn ln
+		db = db.Debug()
+		_ = db.Model(user).Where("email = ?", email).
+			Updates(map[string]interface{}{"firstname": user.FirstName, "lastname": user.LastName})
+
+		w.Header().Set("Content-Type", "application/json")
+	}
+}
+
+func validateJWT(tokenString string) string {
 	// Parse and validate the JWT
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	jwtToken, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Ignore signing method and just return secret
 		return secretKey, nil
 	})
 
-	if err != nil || !token.Valid {
-		//util.SendErrorResponse(w, r, http.StatusUnauthorized, "Invalid authentication token", err.Error())
-		return false
+	if err != nil || !jwtToken.Valid {
+		return ""
 	}
-	return true
+
+	// Token is valid; you can access its claims
+	claims, ok := jwtToken.Claims.(jwt.MapClaims)
+	if !ok {
+		fmt.Println("Failed to extract claims from JWT")
+		return ""
+	}
+
+	// Extract user-related information from the claims
+	email, ok := claims["user_email"].(string)
+
+	return email
 }
 
 func createJWT(email string) (string, error) {
-	token := jwt.New(jwt.SigningMethodHS256)
+	jwtToken := jwt.New(jwt.SigningMethodHS256)
 
 	claims := jwt.MapClaims{
 		"user_email": email,
 		"exp":        time.Now().Add(time.Hour * 24).Unix(), // Token expiration time (adjust as needed)
 	}
 
-	token.Claims = claims
+	jwtToken.Claims = claims
 
 	// Sign token
-	tokenString, err := token.SignedString(secretKey)
+	tokenString, err := jwtToken.SignedString(secretKey)
 	if err != nil {
 		return "", err
 	}
