@@ -7,6 +7,11 @@ type User struct {
 	Password  string `gorm:"column:password" json:"password"`
 }
 
+type LoginBody struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type ErrorResponse struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`

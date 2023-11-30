@@ -18,6 +18,8 @@ func main() {
 
 	router := mux.NewRouter()
 
+	router.HandleFunc("/login", handlers.LoginUser(db)).Methods("POST")
+
 	router.HandleFunc("/users", handlers.GetUsers(db)).Methods("GET")
 
 	router.HandleFunc("/signup", handlers.CreateUser(db)).Methods("POST")
