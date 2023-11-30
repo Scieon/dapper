@@ -19,7 +19,8 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/users", handlers.GetUsers(db)).Methods("GET")
-	router.HandleFunc("/users", handlers.CreateUser(db)).Methods("POST")
+
+	router.HandleFunc("/signup", handlers.CreateUser(db)).Methods("POST")
 
 	fmt.Println("server starting on 8080")
 	http.ListenAndServe("localhost:8080", router)
