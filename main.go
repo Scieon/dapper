@@ -2,6 +2,7 @@ package main
 
 import (
 	"dapper/handlers"
+	"fmt"
 	"github.com/gorilla/mux"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -25,6 +26,8 @@ func main() {
 	router.HandleFunc("/users", handlers.UpdateUser(db)).Methods("PUT")
 
 	router.HandleFunc("/signup", handlers.CreateUser(db)).Methods("POST")
+
+	fmt.Println("Server is started on localhost:8080")
 
 	if err := http.ListenAndServe("localhost:8080", router); err != nil {
 		log.Fatalf("Error starting server: %v", err.Error())
