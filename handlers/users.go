@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"dapper/models"
-	"dapper/token"
 	"dapper/util"
 	"encoding/json"
 	"gorm.io/gorm"
@@ -14,7 +13,7 @@ func GetUsers(db *gorm.DB) http.HandlerFunc {
 		// Parse the JWT from the header
 		tokenString := r.Header.Get("X-Authentication-Token")
 
-		email := token.ValidateJWT(tokenString)
+		email := util.ValidateJWT(tokenString)
 
 		if email == nil {
 			util.SendErrorResponse(w, r, http.StatusUnauthorized, "Invalid authentication token", "")
@@ -56,7 +55,7 @@ func CreateUser(db *gorm.DB) http.HandlerFunc {
 		}
 
 		// Check is jwt valid
-		jwtToken, err := token.CreateJWT(user.Email)
+		jwtToken, err := util.CreateJWT(user.Email)
 		if err != nil {
 			util.SendErrorResponse(w, r, http.StatusInternalServerError, "Could not create JWT", err.Error())
 			return
@@ -88,7 +87,7 @@ func LoginUser(db *gorm.DB) http.HandlerFunc {
 		}
 
 		// Ignore err - for cleaner code
-		jwtToken, _ := token.CreateJWT(login.Email)
+		jwtToken, _ := util.CreateJWT(login.Email)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(jwtToken)
@@ -101,7 +100,7 @@ func UpdateUser(db *gorm.DB) http.HandlerFunc {
 		tokenString := r.Header.Get("X-Authentication-Token")
 
 		// Get email from token
-		email := token.ValidateJWT(tokenString)
+		email := util.ValidateJWT(tokenString)
 
 		if email == nil {
 			util.SendErrorResponse(w, r, http.StatusUnauthorized, "Invalid authentication token", "")

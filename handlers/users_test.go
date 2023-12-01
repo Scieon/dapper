@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"dapper/models"
-	"dapper/token"
+	"dapper/util"
 	"encoding/json"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -28,7 +28,7 @@ func TestGetUsers_ValidJWT(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"firstname", "lastname"}).AddRow("firstname", "lastname")
 	mock.ExpectQuery(`SELECT`).WillReturnRows(rows)
 
-	jwtToken, _ := token.CreateJWT("email")
+	jwtToken, _ := util.CreateJWT("email")
 
 	req := httptest.NewRequest("GET", "/users", nil)
 	req.Header.Set("X-Authentication-Token", jwtToken)
