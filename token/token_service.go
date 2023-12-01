@@ -19,7 +19,6 @@ func ValidateJWT(tokenString string) *string {
 		return nil
 	}
 
-	// Token is valid; you can access its claims
 	claims, ok := jwtToken.Claims.(jwt.MapClaims)
 	if !ok {
 		fmt.Println("Failed to extract claims from JWT")
@@ -37,7 +36,7 @@ func CreateJWT(email string) (string, error) {
 
 	claims := jwt.MapClaims{
 		"user_email": email,
-		"exp":        time.Now().Add(time.Hour * 24).Unix(), // Token expiration time (adjust as needed)
+		"exp":        time.Now().Add(time.Hour * 24).Unix(),
 	}
 
 	jwtToken.Claims = claims

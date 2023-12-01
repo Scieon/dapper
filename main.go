@@ -2,18 +2,19 @@ package main
 
 import (
 	"dapper/handlers"
-	"fmt"
 	"github.com/gorilla/mux"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"log"
 	"net/http"
 )
 
 func main() {
+	// Hardcoded data source name, normally would be in config file or secret
 	dsn := "user=labs password=dapper host=localhost dbname=dapper sslmode=disable"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-
+		log.Fatalf(err.Error())
 	}
 
 	router := mux.NewRouter()
@@ -25,6 +26,7 @@ func main() {
 
 	router.HandleFunc("/signup", handlers.CreateUser(db)).Methods("POST")
 
-	fmt.Println("server starting on 8080")
-	http.ListenAndServe("localhost:8080", router)
+	if err := http.ListenAndServe("localhost:8080", router); err != nil {
+		log.Fatalf("Error starting server: %v", err.Error())
+	}
 }
