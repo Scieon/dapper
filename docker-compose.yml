@@ -1,0 +1,22 @@
+version: '3'
+services:
+  postgres:
+    container_name: dapper-pg
+    build:
+      context: .
+      dockerfile: Dockerfile.db
+    environment:
+      POSTGRES_DB: dapper
+      POSTGRES_USER: labs
+      POSTGRES_PASSWORD: dapper
+    ports:
+      - "5432:5432"
+
+  goserver:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres

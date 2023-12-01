@@ -1,21 +1,15 @@
 # Go JWT
 
 ## Setup
-1. This project was built locally with go version 1.21 
-2. Setup DB container
 ```
-docker build -t dapper-psql .
-docker run -d -p 5432:5432 dapper-psql
+docker-compose up --build
 ```
-3. Setup API server
-```
-go build main.go
-./main
-```
-4. Server should now be started on localhost:8080
+Server should now be started on localhost:8080
 
 ## Testing
-There is only handler unit tests you can run with `go test ./...`
+Note: This project was built locally with go version go1.21.4 darwin/arm64
+
+There is only the handler unit tests which you can run with `go test ./...`
 
 ## Example requests
 POST /signup
@@ -49,7 +43,7 @@ curl --location 'localhost:8080/users' \
 PUT /users
 ```
 curl --location --request PUT 'localhost:8080/users' \
---header 'X-Authentication-Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDE0ODc2NTYsInVzZXJfZW1haWwiOiJhbmhraG9pQGVtYWlsLmNvbSJ9.LbpPsTRGiAnG4Zy92tvmTiLQ81ewu3ow8D2R8XBHJII' \
+--header 'X-Authentication-Token: $TOKEN' \
 --header 'Content-Type: application/json' \
 --data '{
     "firstName": "Dapper",
